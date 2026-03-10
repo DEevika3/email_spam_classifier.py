@@ -1,50 +1,40 @@
+import streamlit as st
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.naive_bayes import MultinomialNB
-from sklearn.metrics import accuracy_score
 
-# Sample dataset
+# Page Title
+st.title("📧 Email Spam Classifier")
+
+# 1. Training Logic (Direct-ah UI-la vekkalaam chinna project-naala)
 data = {
     'email': [
-        "Congratulations you won a lottery",
-        "Meeting at 10 am tomorrow",
-        "Get free money now",
-        "Project submission tomorrow",
-        "Win a free iPhone now",
-        "Let's have lunch today"
+        "Congratulations you won a lottery", "Meeting at 10 am tomorrow",
+        "Get free money now", "Project submission tomorrow",
+        "Win a free iPhone now", "Let's have lunch today"
     ],
     'label': ['spam', 'ham', 'spam', 'ham', 'spam', 'ham']
 }
-
 df = pd.DataFrame(data)
-
-# Convert labels to numbers
 df['label'] = df['label'].map({'spam':1, 'ham':0})
 
-# Split data
-X_train, X_test, y_train, y_test = train_test_split(df['email'], df['label'], test_size=0.2)
-
-# Convert text to numbers
+# Model Setup
 vectorizer = CountVectorizer()
-X_train_vector = vectorizer.fit_transform(X_train)
-X_test_vector = vectorizer.transform(X_test)
-
-# Train model
+X = vectorizer.fit_transform(df['email'])
 model = MultinomialNB()
-model.fit(X_train_vector, y_train)
+model.fit(X, df['label'])
 
-# Test model
-predictions = model.predict(X_test_vector)
+# 2. UI for User Input
+user_msg = st.text_area("Enter Email message to check:")
 
-print("Accuracy:", accuracy_score(y_test, predictions))
-
-# Predict new email
-email = ["Win cash prize now"]
-email_vector = vectorizer.transform(email)
-result = model.predict(email_vector)
-
-if result[0] == 1:
-    print("Spam Email")
-else:
-    print("Not Spam")
+if st.button("Predict"):
+    if user_msg:
+        vec = vectorizer.transform([user_msg])
+        res = model.predict(vec)
+        if res[0] == 1:
+            st.error("🚨 This is a SPAM Email!")
+        else:
+            st.success("✅ This is NOT a Spam Email (Ham).")
+    else:
+        st.warning("Please type something!")
